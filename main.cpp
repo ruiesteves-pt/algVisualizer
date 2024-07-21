@@ -5,6 +5,9 @@
 #include <chrono>
 #include <thread>
 
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 600;
+
 enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT };
 
 // Utils
@@ -17,6 +20,52 @@ void visualizeArray(sf::RenderWindow &window, const std::vector<int> &array) {
     }
     window.display();
 }
+
+void visualizeHeap(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font) {
+    window.clear();
+    
+    int n = array.size();
+    float nodeRadius = 20.0f;
+    float hGap = 40.0f;
+    float vGap = 60.0f;
+    
+    for (int i = 0; i < n; ++i) {
+        float x = WINDOW_WIDTH / 2 + (i - (n / 2)) * hGap;
+        float y = 100 + (int)(log2(i + 1)) * vGap;
+
+        sf::CircleShape node(nodeRadius);
+        node.setFillColor(sf::Color::White);
+        node.setOutlineThickness(2);
+        node.setOutlineColor(sf::Color::Black);
+        node.setPosition(x - nodeRadius, y - nodeRadius);
+
+        sf::Text nodeValue;
+        nodeValue.setFont(font);
+        nodeValue.setString(std::to_string(array[i]));
+        nodeValue.setCharacterSize(14);
+        nodeValue.setFillColor(sf::Color::Black);
+        nodeValue.setPosition(x - nodeRadius / 2, y - nodeRadius / 2);
+
+        window.draw(node);
+        window.draw(nodeValue);
+
+        if (i > 0) {
+            int parent = (i - 1) / 2;
+            float px = WINDOW_WIDTH / 2 + (parent - (n / 2)) * hGap;
+            float py = 100 + (int)(log2(parent + 1)) * vGap;
+
+            sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(px, py)),
+                sf::Vertex(sf::Vector2f(x, y))
+            };
+
+            window.draw(line, 2, sf::Lines);
+        }
+    }
+
+    window.display();
+}
+
 
 // Sorting Algorithms
 void bubbleSort(sf::RenderWindow &window, std::vector<int> &array) {
@@ -31,7 +80,7 @@ void bubbleSort(sf::RenderWindow &window, std::vector<int> &array) {
     }
 }
 
-void heapify(std::vector<int> &array, int n, int i, sf::RenderWindow &window) {
+void heapify(std::vector<int> &array, int n, int i, sf::RenderWindow &window, const sf::Font &font) {
     int largest = i;
     int left = 2*i + 1;
     int right = 2*i + 2;
@@ -46,25 +95,25 @@ void heapify(std::vector<int> &array, int n, int i, sf::RenderWindow &window) {
 
     if (largest != i) {
         std::swap(array[i], array[largest]);
-        visualizeArray(window, array);
+        visualizeHeap(window, array, font);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        heapify(array, n, largest, window);
+        heapify(array, n, largest, window, font);
     }
 }
 
 
-void heapSort(sf::RenderWindow &window, std::vector<int> &array) {
+void heapSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Font &font) {
     int n = array.size();
 
     for (int i = n / 2 -1; i >=0; i--) {
-        heapify(array, n, i, window);
+        heapify(array, n, i, window, font);
     }
 
     for (int i = n - 1; i > 0; i--){
         std::swap(array[0], array[i]);
-        visualizeArray(window, array);
+        visualizeHeap(window, array, font);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        heapify(array, i, 0, window);
+        heapify(array, i, 0, window, font);
     }
 }
 
@@ -72,7 +121,7 @@ void heapSort(sf::RenderWindow &window, std::vector<int> &array) {
 int main() {
     sf::RenderWindow window(sf::VideoMode(800,600), "Algorithm Visualizer");
 
-    std::vector<int> array(50);
+    std::vector<int> array(15);
     std::generate(array.begin(), array.end(), []() {return rand() % 600; });
 
     SortAlgorithm currentAlgorithm = BUBBLE_SORT;
@@ -123,13 +172,17 @@ int main() {
             if (currentAlgorithm == BUBBLE_SORT) {
                 bubbleSort(window, array);
             } else if (currentAlgorithm == HEAP_SORT) {
-                heapSort(window, array);
+                heapSort(window, array, font);
             }
             isSorting = false;
         }
 
         window.clear();
-        visualizeArray(window, array);
+        if (currentAlgorithm == BUBBLE_SORT) {
+            visualizeArray(window, array);
+        } else if (currentAlgorithm == HEAP_SORT) {
+            visualizeHeap(window, array, font);
+        }
         window.draw(text);
         window.display();
     }

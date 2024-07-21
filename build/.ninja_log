@@ -1,7 +1,11 @@
 # ninja log v5
-0	556	1721580416501058793	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
-556	751	1721580416691058725	AlgorithmVisualizer	1b3a384886ee68c6
-0	847	1721583487370081892	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
-847	1063	1721583487580081826	AlgorithmVisualizer	1b3a384886ee68c6
 1	659	1721588900018219846	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
 659	842	1721588900198219785	AlgorithmVisualizer	1b3a384886ee68c6
+0	817	1721596699315729052	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
+817	1018	1721596699515728977	AlgorithmVisualizer	1b3a384886ee68c6
+0	723	1721596778595703288	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
+724	905	1721596778785703220	AlgorithmVisualizer	1b3a384886ee68c6
+1	749	1721596823145689418	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
+749	955	1721596823345689354	AlgorithmVisualizer	1b3a384886ee68c6
+0	684	1721596863035676558	CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o	2c48ec86edae7dbe
+684	863	1721596863215676502	AlgorithmVisualizer	1b3a384886ee68c6
