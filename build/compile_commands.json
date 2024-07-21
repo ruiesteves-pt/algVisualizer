@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/resteves/algVisualizer/build",
+  "command": "/usr/bin/c++ -g -o CMakeFiles/AlgorithmVisualizer.dir/main.cpp.o -c /home/resteves/algVisualizer/main.cpp",
+  "file": "/home/resteves/algVisualizer/main.cpp"
+}
+]
