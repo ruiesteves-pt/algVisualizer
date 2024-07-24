@@ -10,7 +10,7 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT };
+enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT, QUICK_SORT};
 
 // Util functions (mainly display)
 sf::Color getColor(int value) {
@@ -32,7 +32,7 @@ void visualizeArray(sf::RenderWindow &window, const std::vector<int> &array, con
     window.display();
 }
 
-void drawArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, int sortedIndex) {
+void drawArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font) {
     float squareSize = 30.0f;
     float startX = (WINDOW_WIDTH - array.size() * squareSize) / 2;
     float startY = WINDOW_HEIGHT - 100.0f;
@@ -65,9 +65,28 @@ void visualizeHeap(sf::RenderWindow &window, const std::vector<int> &array, cons
     float hGap = 40.0f;
     float vGap = 60.0f;
 
+    std::vector<sf::Vector2f> positions(n);
     for (int i = 0; i < n; ++i) {
         float x = WINDOW_WIDTH / 2 + (i - (n / 2)) * hGap;
         float y = 100 + (int)(log2(i + 1)) * vGap;
+        positions[i] = sf::Vector2f(x, y);
+    }
+
+    // Draw lines first
+    for (int i = 0; i < n; ++i) {
+        if (i > 0) {
+            int parent = (i - 1) / 2;
+            sf::Vertex line[] = {
+                sf::Vertex(positions[parent]),
+                sf::Vertex(positions[i])
+            };
+            window.draw(line, 2, sf::Lines);
+        }
+    }
+
+    for (int i = 0; i < n; ++i) {
+        float x = positions[i].x;
+        float y = positions[i].y;
 
         sf::CircleShape node(nodeRadius);
         node.setFillColor(getColor(array[i]));
@@ -84,22 +103,9 @@ void visualizeHeap(sf::RenderWindow &window, const std::vector<int> &array, cons
 
         window.draw(node);
         window.draw(nodeValue);
-
-        if (i > 0) {
-            int parent = (i - 1) / 2;
-            float px = WINDOW_WIDTH / 2 + (parent - (n / 2)) * hGap;
-            float py = 100 + (int)(log2(parent + 1)) * vGap;
-
-            sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(px, py)),
-                sf::Vertex(sf::Vector2f(x, y))
-            };
-
-            window.draw(line, 2, sf::Lines);
-        }
     }
 
-    drawArray(window, array, font, sortedIndex);
+    drawArray(window, array, font);
 
     window.draw(text);
     window.display();
@@ -152,6 +158,32 @@ void bubbleSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Fon
     }
 }
 
+int partition(std::vector<int> &array, int low, int high, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text) {
+    int pivot = array[high];
+    int i = low - 1;
+    for (int j = low; j <= high - 1; j++) {
+        if (array[j] < pivot) {
+            i++;
+            std::swap(array[i], array[j]);
+            visualizeArray(window, array, font, text);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    }
+
+    std::swap(array[i + 1], array[high]);
+    visualizeArray(window, array, font, text);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    return i+1;
+}
+
+void quickSort(std::vector<int> &array, int low, int high, sf::RenderWindow &window,  const sf::Font &font, const sf::Text &text) {
+    if (low < high) {
+        int pi = partition(array, low, high, window, font, text);
+        quickSort(array, low, pi - 1, window, font, text);
+        quickSort(array, pi + 1, high, window, font, text);
+    }
+}
+
 int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Algorithm Visualizer");
 
@@ -194,6 +226,12 @@ int main() {
                     std::generate(array.begin(), array.end(), []() { return rand() % 100; });
                     isSorting = false;
                 }
+                if (event.key.code == sf::Keyboard::Num3) {
+                    currentAlgorithm = QUICK_SORT;
+                    text.setString("Current Algorithm: Quick Sort");
+                    std::generate(array.begin(), array.end(), []() { return rand() % 100; });
+                    isSorting = false;
+                }
                 if (event.key.code == sf::Keyboard::Enter) {
                     isSorting = true;
                 }
@@ -205,6 +243,8 @@ int main() {
                 bubbleSort(window, array, font, text);
             } else if (currentAlgorithm == HEAP_SORT) {
                 heapSort(window, array, font, text);
+            } else if (currentAlgorithm == QUICK_SORT) {
+                quickSort(array, 0, array.size() - 1, window, font, text);
             }
             isSorting = false;
         }
@@ -214,6 +254,8 @@ int main() {
             visualizeArray(window, array, font, text);
         } else if (currentAlgorithm == HEAP_SORT) {
             visualizeHeap(window, array, font, text, array.size());
+        } else if (currentAlgorithm == QUICK_SORT) {
+            visualizeArray(window, array, font, text);
         }
         window.draw(text); // Draw the text
         window.display();
