@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <map>
 
 // Constants
 const int WINDOW_WIDTH = 800;
@@ -20,12 +21,23 @@ sf::Color getColor(int value) {
     return sf::Color(r, g, b);
 }
 
-void visualizeArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text) {
+void visualizeArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text, const std::map<int, sf::Color> &partitionColors = {}) {
     window.clear();
+
+    float barWidth = 10.0f;
+    float spacing = 2.0f;
+    float totalWidth = array.size() * (barWidth + spacing) - spacing;
+    float startX = (WINDOW_WIDTH - totalWidth) / 2;
+
     for (size_t i = 0; i < array.size(); ++i) {
-        sf::RectangleShape bar(sf::Vector2f(10, array[i]));
-        bar.setPosition(i * 12, 600 - array[i]);
-        bar.setFillColor(getColor(array[i]));
+        sf::RectangleShape bar(sf::Vector2f(barWidth, array[i]));
+        bar.setPosition(startX + i * (barWidth + spacing), WINDOW_HEIGHT - array[i]);
+
+        if (partitionColors.find(i) != partitionColors.end()) {
+            bar.setFillColor(partitionColors.at(i));
+        } else {
+            bar.setFillColor(getColor(array[i]));
+        }
         window.draw(bar);
     }
     window.draw(text);
@@ -39,7 +51,6 @@ void drawArray(sf::RenderWindow &window, const std::vector<int> &array, const sf
 
     for (size_t i = 0; i < array.size(); ++i) {
         sf::RectangleShape square(sf::Vector2f(squareSize, squareSize));
-        square.setFillColor(sf::Color::Transparent);
         square.setFillColor(getColor(array[i]));
         square.setOutlineThickness(2);
         square.setOutlineColor(sf::Color::Black);
@@ -53,8 +64,60 @@ void drawArray(sf::RenderWindow &window, const std::vector<int> &array, const sf
         valueText.setPosition(startX + i * squareSize + 5, startY + 5);
         window.draw(square);
         window.draw(valueText);
-
     }
+}
+
+void visualizeBarsAndArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text, const std::map<int, sf::Color> &partitionColors = {}) {
+    window.clear();
+    
+    float barWidth = 10.0f;
+    float spacing = 2.0f;
+    float totalWidth = array.size() * (barWidth + spacing) - spacing;
+    float startX = (WINDOW_WIDTH - totalWidth) / 2;
+
+    // Draw bars
+    for (size_t i = 0; i < array.size(); ++i) {
+        sf::RectangleShape bar(sf::Vector2f(barWidth, array[i]));
+        bar.setPosition(startX + i * (barWidth + spacing), 400 - array[i]); // Adjusted height for bars
+
+        if (partitionColors.find(i) != partitionColors.end()) {
+            bar.setFillColor(partitionColors.at(i));
+        } else {
+            bar.setFillColor(getColor(array[i]));
+        }
+
+        window.draw(bar);
+    }
+
+    // Draw array as squares
+    float squareSize = 30.0f;
+    startX = (WINDOW_WIDTH - array.size() * squareSize) / 2;
+    float startY = WINDOW_HEIGHT - 100.0f;
+
+    for (size_t i = 0; i < array.size(); ++i) {
+        sf::RectangleShape square(sf::Vector2f(squareSize, squareSize));
+        if (partitionColors.find(i) != partitionColors.end()) {
+            square.setFillColor(partitionColors.at(i));
+        } else {
+            square.setFillColor(getColor(array[i]));
+        }
+        square.setOutlineThickness(2);
+        square.setOutlineColor(sf::Color::Black);
+        square.setPosition(startX + i * squareSize, startY);
+
+        sf::Text valueText;
+        valueText.setFont(font);
+        valueText.setString(std::to_string(array[i]));
+        valueText.setCharacterSize(14);
+        valueText.setFillColor(sf::Color::Black);
+        valueText.setPosition(startX + i * squareSize + 5, startY + 5);
+
+        window.draw(square);
+        window.draw(valueText);
+    }
+
+    window.draw(text);
+    window.display();
 }
 
 void visualizeHeap(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text, int sortedIndex) {
@@ -111,7 +174,6 @@ void visualizeHeap(sf::RenderWindow &window, const std::vector<int> &array, cons
     window.display();
 }
 
-
 // Sorting functions
 void heapify(std::vector<int> &array, int n, int i, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text, int sortedIndex) {
     int largest = i;
@@ -147,11 +209,17 @@ void heapSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Font 
 }
 
 void bubbleSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Font &font, const sf::Text &text) {
+    std::map<int, sf::Color> partitionColors;
+    sf::Color partitionColor = sf::Color::White;
+    for (size_t i = 0; i < array.size(); ++i) {
+        partitionColors[i] = partitionColor;
+    }
+
     for (size_t i = 0; i < array.size() - 1; ++i) {
         for (size_t j = 0; j < array.size() - i - 1; ++j) {
             if (array[j] > array[j + 1]) {
                 std::swap(array[j], array[j + 1]);
-                visualizeArray(window, array, font, text);
+                visualizeBarsAndArray(window, array, font, text, partitionColors);
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
         }
@@ -161,22 +229,30 @@ void bubbleSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Fon
 int partition(std::vector<int> &array, int low, int high, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text) {
     int pivot = array[high];
     int i = low - 1;
+    std::map<int, sf::Color> partitionColors;
+    sf::Color partitionColor = sf::Color::White;
+    for (size_t j = 0; j < array.size(); j++) {
+        partitionColors[j] = partitionColor;
+    }
+
+    partitionColors[high] = sf::Color::Red;
+
     for (int j = low; j <= high - 1; j++) {
         if (array[j] < pivot) {
             i++;
             std::swap(array[i], array[j]);
-            visualizeArray(window, array, font, text);
+            visualizeBarsAndArray(window, array, font, text, partitionColors);
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 
     std::swap(array[i + 1], array[high]);
-    visualizeArray(window, array, font, text);
+    visualizeBarsAndArray(window, array, font, text, partitionColors);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     return i+1;
 }
 
-void quickSort(std::vector<int> &array, int low, int high, sf::RenderWindow &window,  const sf::Font &font, const sf::Text &text) {
+void quickSort(std::vector<int> &array, int low, int high, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text) {
     if (low < high) {
         int pi = partition(array, low, high, window, font, text);
         quickSort(array, low, pi - 1, window, font, text);
@@ -187,16 +263,17 @@ void quickSort(std::vector<int> &array, int low, int high, sf::RenderWindow &win
 int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Algorithm Visualizer");
 
-    std::vector<int> array(15);
+    std::vector<int> array(20);
+    std::srand(std::time(0)); // Initialize random seed
     std::generate(array.begin(), array.end(), []() { return rand() % 100; });
 
     SortAlgorithm currentAlgorithm = BUBBLE_SORT;
     bool isSorting = false;
+    sf::Color partitionColor;
 
     // Load font
     sf::Font font;
     if (!font.loadFromFile("arial.ttf")) {
-        // Handle error
         return -1;
     }
 
@@ -217,19 +294,19 @@ int main() {
                 if (event.key.code == sf::Keyboard::Num1) {
                     currentAlgorithm = BUBBLE_SORT;
                     text.setString("Current Algorithm: Bubble Sort");
-                    std::generate(array.begin(), array.end(), []() { return rand() % 600; });
+                    std::generate(array.begin(), array.end(), []() { return rand() % 200; });
                     isSorting = false;
                 }
                 if (event.key.code == sf::Keyboard::Num2) {
                     currentAlgorithm = HEAP_SORT;
                     text.setString("Current Algorithm: Heap Sort");
-                    std::generate(array.begin(), array.end(), []() { return rand() % 100; });
+                    std::generate(array.begin(), array.end(), []() { return rand() % 200; });
                     isSorting = false;
                 }
                 if (event.key.code == sf::Keyboard::Num3) {
                     currentAlgorithm = QUICK_SORT;
                     text.setString("Current Algorithm: Quick Sort");
-                    std::generate(array.begin(), array.end(), []() { return rand() % 100; });
+                    std::generate(array.begin(), array.end(), []() { return rand() % 200; });
                     isSorting = false;
                 }
                 if (event.key.code == sf::Keyboard::Enter) {
@@ -251,11 +328,21 @@ int main() {
 
         window.clear();
         if (currentAlgorithm == BUBBLE_SORT) {
-            visualizeArray(window, array, font, text);
+            std::map<int, sf::Color> partitionColors;
+            sf::Color partitionColor = sf::Color::White;
+            for (size_t i = 0; i < array.size(); ++i) {
+                partitionColors[i] = partitionColor;
+            }
+            visualizeBarsAndArray(window, array, font, text, partitionColors);
         } else if (currentAlgorithm == HEAP_SORT) {
             visualizeHeap(window, array, font, text, array.size());
         } else if (currentAlgorithm == QUICK_SORT) {
-            visualizeArray(window, array, font, text);
+            std::map<int, sf::Color> partitionColors;
+            sf::Color partitionColor = sf::Color::White;
+            for (size_t i = 0; i < array.size(); ++i) {
+                partitionColors[i] = partitionColor;
+            }
+            visualizeBarsAndArray(window, array, font, text, partitionColors);
         }
         window.draw(text); // Draw the text
         window.display();
