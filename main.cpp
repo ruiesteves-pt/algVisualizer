@@ -11,7 +11,7 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT, QUICK_SORT};
+enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT, QUICK_SORT, MERGE_SORT, SELECTION_SORT};
 
 // Util functions (mainly display)
 sf::Color getColor(int value) {
@@ -66,6 +66,59 @@ void drawArray(sf::RenderWindow &window, const std::vector<int> &array, const sf
         window.draw(valueText);
     }
 }
+
+
+void visualizeBarsAndArrayMerge(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text, int pivotIndex = -1, int leftIndex = -1, int rightIndex = -1) {
+    window.clear();
+    float barWidth = 10.0f;
+    float spacing = 2.0f;
+    float totalWidth = array.size() * (barWidth + spacing) - spacing;
+    float startX = (WINDOW_WIDTH - totalWidth) / 2;
+
+    // Draw bars
+    for (size_t i = 0; i < array.size(); ++i) {
+        sf::RectangleShape bar(sf::Vector2f(10, array[i]));
+        bar.setPosition(startX + i * (barWidth + spacing), 400 - array[i]);
+
+        if (i == pivotIndex) {
+            bar.setFillColor(sf::Color::Red);
+        } else if (i == leftIndex || i == rightIndex) {
+            bar.setFillColor(sf::Color::Green);
+        } else {
+            bar.setFillColor(sf::Color::White);
+        }
+
+        window.draw(bar);
+    }
+
+    // Draw array as squares
+    float squareSize = 30.0f;
+    startX = (WINDOW_WIDTH - array.size() * squareSize) / 2;
+    float startY = WINDOW_HEIGHT - 100.0f;
+
+    for (size_t i = 0; i < array.size(); ++i) {
+        sf::RectangleShape square(sf::Vector2f(squareSize, squareSize));
+        square.setFillColor(sf::Color::White);
+        square.setOutlineThickness(2);
+        square.setOutlineColor(sf::Color::Black);
+        square.setPosition(startX + i * squareSize, startY);
+
+        sf::Text valueText;
+        valueText.setFont(font);
+        valueText.setString(std::to_string(array[i]));
+        valueText.setCharacterSize(14);
+        valueText.setFillColor(sf::Color::Black);
+        valueText.setPosition(startX + i * squareSize + 5, startY + 5);
+
+        window.draw(square);
+        window.draw(valueText);
+    }
+
+    window.draw(text);
+    window.display();
+}
+
+
 
 void visualizeBarsAndArray(sf::RenderWindow &window, const std::vector<int> &array, const sf::Font &font, const sf::Text &text, const std::map<int, sf::Color> &partitionColors = {}) {
     window.clear();
@@ -236,6 +289,7 @@ int partition(std::vector<int> &array, int low, int high, sf::RenderWindow &wind
     }
 
     partitionColors[high] = sf::Color::Red;
+    partitionColors[low] = sf::Color::Red;
 
     for (int j = low; j <= high - 1; j++) {
         if (array[j] < pivot) {
@@ -259,6 +313,95 @@ void quickSort(std::vector<int> &array, int low, int high, sf::RenderWindow &win
         quickSort(array, pi + 1, high, window, font, text);
     }
 }
+
+
+
+void merge(std::vector<int> &array, int left, int mid, int right, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    std::vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; i++)
+        L[i] = array[left + i];
+    for (int i = 0; i < n2; i++)
+        R[i] = array[mid + 1 + i];
+
+    int i = 0, j = 0, k = left;
+
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            array[k] = L[i];
+            i++;
+        } else {
+            array[k] = R[j];
+            j++;
+        }
+        visualizeBarsAndArrayMerge(window, array, font, text, -1, left + i, mid + 1 + j);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        k++;
+    }
+
+    while (i < n1) {
+        array[k] = L[i];
+        visualizeBarsAndArrayMerge(window, array, font, text, -1, left + i, -1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        array[k] = R[j];
+        visualizeBarsAndArrayMerge(window, array, font, text, -1, -1, mid + 1 + j);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(std::vector<int> &array, int left, int right, sf::RenderWindow &window, const sf::Font &font, const sf::Text &text) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        mergeSort(array, left, mid, window, font, text);
+        mergeSort(array, mid + 1, right, window, font, text);
+        merge(array, left, mid, right, window, font, text);
+    }
+}
+
+
+
+void selectionSort(sf::RenderWindow &window, std::vector<int> &array, const sf::Font &font, const sf::Text &text) {
+    int n = array.size();
+    std::map<int, sf::Color> partitionColors;
+
+    for (int i = 0; i < n - 1; i++) {
+        int minIndex = i;
+        for (int j = i + 1; j < n; j++) {
+            if (array[j] < array[minIndex]) {
+                minIndex = j;
+            }
+        }
+        std::swap(array[minIndex], array[i]);
+        sf::Color partitionColor = sf::Color::White;
+        for (size_t j = 0; j < array.size(); j++) {
+        partitionColors[j] = partitionColor;
+    }
+        partitionColors[minIndex] = sf::Color::Red;
+
+        visualizeBarsAndArray(window, array, font, text,partitionColors);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+
+sf::Color generateRandomColor() {
+    int r = rand() % 256;
+    int g = rand() % 256;
+    int b = rand() % 256;
+    return sf::Color(r, g, b);
+}
+
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Algorithm Visualizer");
@@ -309,6 +452,22 @@ int main() {
                     std::generate(array.begin(), array.end(), []() { return rand() % 200; });
                     isSorting = false;
                 }
+
+                if (event.key.code == sf::Keyboard::Num4) {
+                    currentAlgorithm = MERGE_SORT;
+                    text.setString("Current Algorithm: Merge Sort");
+                    std::generate(array.begin(), array.end(), []() { return rand() % 200; });
+                    isSorting = false;
+                }
+
+                if (event.key.code == sf::Keyboard::Num5) {
+                    currentAlgorithm = SELECTION_SORT;
+                    text.setString("Current Algorithm: Selection Sort");
+                    std::generate(array.begin(), array.end(), []() { return rand() % 200; });
+                    isSorting = false;
+                }
+
+
                 if (event.key.code == sf::Keyboard::Enter) {
                     isSorting = true;
                 }
@@ -322,7 +481,12 @@ int main() {
                 heapSort(window, array, font, text);
             } else if (currentAlgorithm == QUICK_SORT) {
                 quickSort(array, 0, array.size() - 1, window, font, text);
+            } else if (currentAlgorithm == MERGE_SORT) {
+                mergeSort(array, 0, array.size() - 1, window, font, text);
+            }  else if (currentAlgorithm == SELECTION_SORT) {
+                selectionSort(window, array, font, text);
             }
+
             isSorting = false;
         }
 
@@ -337,6 +501,20 @@ int main() {
         } else if (currentAlgorithm == HEAP_SORT) {
             visualizeHeap(window, array, font, text, array.size());
         } else if (currentAlgorithm == QUICK_SORT) {
+            std::map<int, sf::Color> partitionColors;
+            sf::Color partitionColor = sf::Color::White;
+            for (size_t i = 0; i < array.size(); ++i) {
+                partitionColors[i] = partitionColor;
+            }
+            visualizeBarsAndArray(window, array, font, text, partitionColors);
+        } else if (currentAlgorithm == MERGE_SORT) {
+            std::map<int, sf::Color> partitionColors;
+            sf::Color partitionColor = sf::Color::White;
+            for (size_t i = 0; i < array.size(); ++i) {
+                partitionColors[i] = partitionColor;
+            }
+            visualizeBarsAndArray(window, array, font, text, partitionColors);
+        } else if (currentAlgorithm == SELECTION_SORT) {
             std::map<int, sf::Color> partitionColors;
             sf::Color partitionColor = sf::Color::White;
             for (size_t i = 0; i < array.size(); ++i) {
