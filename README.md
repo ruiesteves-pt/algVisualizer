@@ -32,4 +32,8 @@ There is a shell script present in the repo main folder called run.sh. Simply ru
 
 You can control it with your number keys 1 2 3 4 5 to select an algorithm and by pressing Enter you will start the sorting process. Enjoy!
 
-![image](https://github.com/user-attachments/assets/15555820-0c31-401f-861b-0d99f00819ff)
+
+
+https://github.com/user-attachments/assets/4d881d00-355b-45b6-8e86-e56ecc555e13
+
+
