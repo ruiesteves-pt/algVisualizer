@@ -525,7 +525,7 @@ int main() {
             }
             visualizeBarsAndArray(window, array, font, text, partitionColors);
         }
-        window.draw(text); // Draw the text
+        window.draw(text);
         window.display();
     }
 
