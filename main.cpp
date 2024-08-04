@@ -1,3 +1,6 @@
+// Sorting algorithm visualizer in C++
+// @ruiesteves August 2024
+
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <algorithm>
@@ -11,7 +14,7 @@
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-enum SortAlgorithm { BUBBLE_SORT, HEAP_SORT, QUICK_SORT, MERGE_SORT, SELECTION_SORT};
+enum SortAlgorithm {BUBBLE_SORT, HEAP_SORT, QUICK_SORT, MERGE_SORT, SELECTION_SORT};
 
 // Util functions (mainly display)
 sf::Color getColor(int value) {
@@ -131,7 +134,7 @@ void visualizeBarsAndArray(sf::RenderWindow &window, const std::vector<int> &arr
     // Draw bars
     for (size_t i = 0; i < array.size(); ++i) {
         sf::RectangleShape bar(sf::Vector2f(barWidth, array[i]));
-        bar.setPosition(startX + i * (barWidth + spacing), 400 - array[i]); // Adjusted height for bars
+        bar.setPosition(startX + i * (barWidth + spacing), 400 - array[i]); 
 
         if (partitionColors.find(i) != partitionColors.end()) {
             bar.setFillColor(partitionColors.at(i));
