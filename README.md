@@ -8,6 +8,9 @@ Additionally, the program uses a CMake built system. Althought it is definitely 
 
 The graphical side is programmed using the SFML library: https://www.sfml-dev.org/, which also proves itself valuable for a pratice exercise in GUI C++ development.
 
+## Algorithms
+Five sorting algorithms are available: bubble sort, heap sort, quick sort, merge sort, and selection sort.
+
 ## Installation
 Clone or download this repo, move to the directory.
 
